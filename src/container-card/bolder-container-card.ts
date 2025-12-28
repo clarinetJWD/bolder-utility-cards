@@ -1,4 +1,4 @@
-import { LitElement, type TemplateResult, html, type PropertyValues, css, type CSSResultGroup, unsafeCSS, type CSSResult, HTMLTemplateResult } from 'lit'
+import { LitElement, type TemplateResult, html, type PropertyValues, css, type CSSResultGroup, unsafeCSS, type CSSResult, type HTMLTemplateResult } from 'lit'
 import { customElement, property } from 'lit-element'
 /* import { ifDefined } from 'lit-html/directives/if-defined' */
 import { type HomeAssistant, type LovelaceCardConfig, createThing, type LovelaceCard, type LovelaceCardEditor } from 'custom-card-helpers'
@@ -8,6 +8,7 @@ import { BolderHeaderCard } from '../header-card/bolder-header-card'
 import { GetCss } from './bolder-container-styles'
 import localize from '../localize/localize'
 import * as pjson from '../../package.json'
+import { classMap } from 'lit/directives/class-map'
 
 console.info(
   `%c BOLDER-CONTAINER-CARD \n%c   Version ${pjson.version}   `,
@@ -22,20 +23,20 @@ console.info(
   type: 'bolder-container-card',
   name: 'Bolder Container Card',
   description: 'A container card like Stack In Card that allows for more customization and theming.'
-})
-/* (window as any).customCards.push({
+});
+(window as any).customCards.push({
   type: 'extended-tile-card',
   name: 'Extended Tile Card',
   description: 'A container card like Stack In Card that allows for more customization and theming.'
-}) */
+})
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const HELPERS = (window as any).loadCardHelpers ? (window as any).loadCardHelpers() : undefined
 
-/* const HuiTileCard = customElements.get('hui-tile-card') as typeof LitElement
+const HuiTileCard = customElements.get('hui-tile-card') as typeof LitElement
 @customElement('extended-tile-card')
 export class ExtendedTileCard extends HuiTileCard {
-  public static getStubConfig (
+  /* public static getStubConfig (
     hass: HomeAssistant,
     entities: string[],
     entitiesFallback: string[]
@@ -56,10 +57,274 @@ export class ExtendedTileCard extends HuiTileCard {
       type: "tile",
       entity: foundEntities[0] || "",
     };
-  }
+  } */
   protected render (): any {
     const returnValue: HTMLTemplateResult = super.render() as HTMLTemplateResult
-    return html`${returnValue}<style>:host { background: poop; }</style>`
+    /* returnValue.strings[24] = '"></ha-tile-info> </div> ' */
+
+    return html`${returnValue}<style>/*#info { display: none; }*/ .content { flex: none !important; } .container.horizontal hui-card-features { flex: 1 !important; width: unset !important; } .primary { font-size: 100pt !important;}</style>`
+  }
+
+  static styles = css`
+    :host {
+      --tile-color: var(--state-inactive-color);
+      -webkit-tap-highlight-color: transparent;
+    }
+    ha-card:has(.background:focus-visible) {
+      --shadow-default: var(--ha-card-box-shadow, 0 0 0 0 transparent);
+      --shadow-focus: 0 0 0 1px var(--tile-color);
+      border-color: var(--tile-color);
+      box-shadow: var(--shadow-default), var(--shadow-focus);
+    }
+    ha-card {
+      --ha-ripple-color: var(--tile-color);
+      --ha-ripple-hover-opacity: 0.04;
+      --ha-ripple-pressed-opacity: 0.12;
+      height: 100%;
+      transition:
+        box-shadow 180ms ease-in-out,
+        border-color 180ms ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    ha-card.active {
+      --tile-color: var(--state-icon-color);
+    }
+    [role="button"] {
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    [role="button"]:focus {
+      outline: none;
+    }
+    .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      border-radius: var(--ha-card-border-radius, 12px);
+      margin: calc(-1 * var(--ha-card-border-width, 1px));
+      overflow: hidden;
+    }
+    .container {
+      margin: calc(-1 * var(--ha-card-border-width, 1px));
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .container.horizontal {
+      flex-direction: row;
+    }
+
+    .content {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      padding: 10px;
+      flex: 1;
+      min-width: 0;
+      box-sizing: border-box;
+      pointer-events: none;
+      gap: 10px;
+    }
+
+    .vertical {
+      flex-direction: column;
+      text-align: center;
+      justify-content: center;
+    }
+    .vertical ha-tile-info {
+      width: 100%;
+      flex: none;
+    }
+    ha-tile-icon {
+      --tile-icon-color: var(--tile-color);
+      position: relative;
+      padding: 6px;
+      margin: -6px;
+    }
+    ha-tile-badge {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      inset-inline-end: 3px;
+      inset-inline-start: initial;
+    }
+    ha-tile-info {
+      position: relative;
+      min-width: 0;
+      transition: background-color 180ms ease-in-out;
+      box-sizing: border-box;
+    }
+    hui-card-features {
+      --feature-color: var(--tile-color);
+      padding: 0 12px 12px 12px;
+    }
+    .container.horizontal hui-card-features {
+      width: calc(50% - var(--column-gap, 0px) / 2 - 12px);
+      flex: none;
+      --feature-height: 36px;
+      padding: 0 12px;
+      padding-inline-start: 0;
+    }
+
+    ha-tile-icon[data-domain="alarm_control_panel"][data-state="pending"],
+    ha-tile-icon[data-domain="alarm_control_panel"][data-state="arming"],
+    ha-tile-icon[data-domain="alarm_control_panel"][data-state="triggered"],
+    ha-tile-icon[data-domain="lock"][data-state="jammed"] {
+      animation: pulse 1s infinite;
+    }
+
+    ha-tile-badge.not-found {
+      --tile-badge-background-color: var(--red-color);
+    }
+
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  `
+
+  /* protected render (): any {
+    if (!this._config || !this.hass) {
+      return nothing
+    }
+    const entityId = this._config.entity
+    const stateObj = entityId ? this.hass.states[entityId] : undefined
+
+    const contentClasses = { vertical: Boolean(this._config.vertical) }
+
+    if (!stateObj) {
+      return html`
+        <ha-card>
+          <div class="content ${classMap(contentClasses)}">
+            <ha-tile-icon>
+              <ha-svg-icon slot="icon" .path=${mdiHelp}></ha-svg-icon>
+              <ha-tile-badge class="not-found">
+                <ha-svg-icon .path=${mdiExclamationThick}></ha-svg-icon>
+              </ha-tile-badge>
+            </ha-tile-icon>
+            <ha-tile-info
+              .primary=${entityId}
+              secondary=${this.hass.localize('ui.card.tile.not_found')}
+            ></ha-tile-info>
+          </div>
+        </ha-card>
+      `
+    }
+
+    const name = this._config.name || computeStateName(stateObj);
+    const active = stateActive(stateObj);
+    const color = this._computeStateColor(stateObj, this._config.color);
+    const domain = computeDomain(stateObj.entity_id);
+
+    const stateDisplay = this._config.hide_state
+      ? nothing
+      : html`
+          <state-display
+            .stateObj=${stateObj}
+            .hass=${this.hass}
+            .content=${this._config.state_content}
+            .name=${this._config.name}
+          >
+          </state-display>
+        `;
+
+    const style = {
+      "--tile-color": color,
+    };
+
+    const imageUrl = this._config.show_entity_picture
+      ? this._getImageUrl(stateObj)
+      : undefined;
+
+    const featurePosition = this._featurePosition(this._config);
+    const features = this._displayedFeatures(this._config);
+
+    const containerOrientationClass =
+      featurePosition === "inline" ? "horizontal" : "";
+
+    return html`
+      <ha-card style=${styleMap(style)} class=${classMap({ active })}>
+        <div
+          class="background"
+          @action=${this._handleAction}
+          .actionHandler=${actionHandler({
+            hasHold: hasAction(this._config!.hold_action),
+            hasDoubleClick: hasAction(this._config!.double_tap_action),
+          })}
+          role=${ifDefined(this._hasCardAction ? "button" : undefined)}
+          tabindex=${ifDefined(this._hasCardAction ? "0" : undefined)}
+          aria-labelledby="info"
+        >
+          <ha-ripple .disabled=${!this._hasCardAction}></ha-ripple>
+        </div>
+        <div class="container ${containerOrientationClass}">
+          <div class="content ${classMap(contentClasses)}">
+            <ha-tile-icon
+              role=${ifDefined(this._hasIconAction ? "button" : undefined)}
+              tabindex=${ifDefined(this._hasIconAction ? "0" : undefined)}
+              @action=${this._handleIconAction}
+              .actionHandler=${actionHandler({
+                hasHold: hasAction(this._config!.icon_hold_action),
+                hasDoubleClick: hasAction(this._config!.icon_double_tap_action),
+              })}
+              .interactive=${this._hasIconAction}
+              .imageStyle=${DOMAIN_IMAGE_SHAPE[domain]}
+              .imageUrl=${imageUrl}
+              data-domain=${ifDefined(domain)}
+              data-state=${ifDefined(stateObj?.state)}
+            >
+              <ha-state-icon
+                slot="icon"
+                .icon=${this._config.icon}
+                .stateObj=${stateObj}
+                .hass=${this.hass}
+              ></ha-state-icon>
+              ${renderTileBadge(stateObj, this.hass)}
+            </ha-tile-icon>
+            <ha-tile-info
+              id="info"
+              .primary=${name}
+              .secondary=${stateDisplay}
+            ></ha-tile-info>
+          </div>
+          ${features.length > 0
+            ? html`
+                <hui-card-features
+                  .hass=${this.hass}
+                  .stateObj=${stateObj}
+                  .color=${this._config.color}
+                  .features=${features}
+                ></hui-card-features>
+              `
+            : nothing}
+        </div>
+      </ha-card>
+    `;
+  } */
+}
+
+/* function callSuperSetConfig (target: any, config: any): void {
+  Object.getPrototypeOf(Object.getPrototypeOf(target)).setConfig.call(target, config)
+} */
+
+/* const HuiTileCardEditor = customElements.get('hui-tile-card-editor') as typeof LitElement
+@customElement('extended-tile-card-editor')
+export class ExtendedTileCardEditor extends HuiTileCardEditor {
+  public setConfig (config: LovelaceCardConfig): void {
+    // callSuperSetConfig(this, config)
+    const poop = config
   }
 } */
 
@@ -73,6 +338,8 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
   private static _hass?: HomeAssistant
 
   private _cardPromise: Promise<LovelaceCard> | undefined
+  private _resizeObserver?: ResizeObserver
+  private _mutationObserver?: MutationObserver
 
   // eslint-disable-next-line accessor-pairs
   set hass (hass: HomeAssistant) {
@@ -103,7 +370,19 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
   static get styles (): CSSResultGroup {
     const root = document.documentElement
     const value = getComputedStyle(root).getPropertyValue('--bolder-container-card-gap').trim()
-    return [css`${unsafeCSS(GetCss(!!value))}`]
+    return [
+      css`${unsafeCSS(GetCss(!!value))}`,
+      css`
+        :host {
+          display: block;
+          min-height: 1px; /* Prevent 0px height on Android */
+        }
+        .card-wrapper {
+          min-height: 1px; /* Ensure wrapper has minimum height */
+          display: block;
+        }
+      `
+    ]
   }
 
   public setConfig (config: BolderContainerCardConfig): void {
@@ -131,9 +410,86 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
     this._createStack()
   }
 
+  connectedCallback (): void {
+    super.connectedCallback()
+    // Ensure observers are set up when component is connected
+    window.setTimeout(() => {
+      this._setupObservers()
+    }, 0)
+  }
+
+  disconnectedCallback (): void {
+    super.disconnectedCallback()
+    // Clean up observers
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect()
+      this._resizeObserver = undefined
+    }
+    if (this._mutationObserver) {
+      this._mutationObserver.disconnect()
+      this._mutationObserver = undefined
+    }
+  }
+
+  private _setupObservers (): void {
+    if (!this.shadowRoot) return
+
+    // Set up ResizeObserver to monitor card size and trigger updates if it becomes 0
+    if (!this._resizeObserver) {
+      const haCard = this.shadowRoot.querySelector('ha-card')
+      if (haCard) {
+        this._resizeObserver = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            // If the card height becomes 0 or very small, trigger a resize
+            if (entry.contentRect.height < 1) {
+              window.setTimeout(() => {
+                this.requestUpdate()
+                window.dispatchEvent(new Event('resize'))
+              }, 10)
+            }
+          }
+        })
+        this._resizeObserver.observe(haCard)
+      }
+    }
+
+    // Set up MutationObserver to detect when child cards are added
+    if (!this._mutationObserver) {
+      const wrapper = this.shadowRoot.querySelector('.card-wrapper')
+      if (wrapper) {
+        this._mutationObserver = new MutationObserver(() => {
+          // When children are added, ensure we recalculate size
+          window.setTimeout(() => {
+            window.dispatchEvent(new Event('resize'))
+          }, 50)
+        })
+        this._mutationObserver.observe(wrapper, {
+          childList: true,
+          subtree: true
+        })
+      }
+    }
+  }
+
   protected updated (changedProperties: PropertyValues): void {
     super.updated(changedProperties)
-    if (!this._card) return
+    
+    // Set up observers if not already set up
+    this._setupObservers()
+
+    if (!this._card) {
+      // If card was just created, ensure we trigger a resize after it's rendered
+      if (this._cardPromise) {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        this._cardPromise.then(() => {
+          window.setTimeout(() => {
+            this.requestUpdate()
+            window.dispatchEvent(new Event('resize'))
+          }, 50)
+        })
+      }
+      return
+    }
     this._waitForChildren(this._card, false)
     window.setTimeout(() => { this.updateStyleOnTimeout() }, 1)
     window.setTimeout(() => { this.updateStyleOnTimeout() }, 500)
@@ -159,6 +515,30 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
     })
 
     this._card = await this._cardPromise
+    
+    // Request update to ensure the card is rendered after async creation
+    // This is critical for Android devices where timing can cause the card to disappear
+    this.requestUpdate()
+    
+    // Wait for this component to update, then wait for child card to update
+    await this.updateComplete
+    
+    if (this._card && (this._card as unknown as LitElement).updateComplete) {
+      await ((this._card as unknown as LitElement).updateComplete as Promise<boolean>)
+    }
+    
+    // Trigger multiple resize events at different intervals to ensure Home Assistant picks it up
+    // This is especially important on Android where timing can be unpredictable
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+    }, 10)
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+      this.requestUpdate()
+    }, 100)
+    window.setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+    }, 500)
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -180,7 +560,7 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
       ${this._config.keep_outer_padding ? 'outer-padding ' : ''}
       ">
       ${this._config.header ? html`${this._header}` : html``}
-        <div>${this._card}</div>
+        <div class="card-wrapper">${this._card || html``}</div>
         <style>${this._config.styles ? css`${this.getStyleOverrideFromConfig(this._config.styles)}` : css``}</style>
       </ha-card>
     `
@@ -294,11 +674,51 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
   }
 
   public async getCardSize (): Promise<number> {
-    await this._cardPromise
-    if (!this._card) {
-      return 0
+    // Wait for card promise to complete
+    if (this._cardPromise) {
+      try {
+        await this._cardPromise
+      } catch (e) {
+        // If promise fails, wait a bit and try again
+        await new Promise(resolve => window.setTimeout(resolve, 100))
+      }
     }
-    return await this._computeCardSize(this._card)
+    
+    if (!this._card) {
+      // If card still doesn't exist, wait a bit more for Android devices
+      // that may have slower async initialization - retry up to 3 times
+      for (let i = 0; i < 3; i++) {
+        await new Promise(resolve => window.setTimeout(resolve, 50))
+        if (this._card) break
+      }
+      if (!this._card) {
+        // Return minimum size instead of 0 to prevent disappearing
+        return 1
+      }
+    }
+    
+    try {
+      const size = await this._computeCardSize(this._card)
+      // Ensure we return at least 1 to prevent the card from disappearing
+      const finalSize = Math.max(1, size)
+      
+      // Double-check: if we have a card element, verify it has actual content
+      if (this.shadowRoot) {
+        const haCard = this.shadowRoot.querySelector('ha-card') as HTMLElement
+        if (haCard && haCard.offsetHeight === 0 && finalSize === 1) {
+          // Card exists but has 0 height - trigger update and return a safe minimum
+          window.setTimeout(() => {
+            this.requestUpdate()
+            window.dispatchEvent(new Event('resize'))
+          }, 10)
+        }
+      }
+      
+      return finalSize
+    } catch (e) {
+      // If computation fails, return minimum size
+      return 1
+    }
   }
 
   private _computeCardSize (card: LovelaceCard): number | Promise<number> {

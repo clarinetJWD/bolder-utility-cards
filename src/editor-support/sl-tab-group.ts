@@ -5,7 +5,7 @@ import type { PropertyValues } from 'lit'
 import { css } from 'lit'
 import { customElement, query } from 'lit/decorators.js'
 
-// @customElement('sl-tab-group')
+@customElement('sl-tab-group')
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment, @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
 export class HaSlTabGroup extends TabGroup {

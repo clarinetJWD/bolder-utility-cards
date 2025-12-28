@@ -38,14 +38,38 @@ export class BolderContainerCardEditor extends LitElement implements LovelaceCar
   protected _cardEditorEl?: any
 
   protected _keys = new Map<string, string>()
+  protected _previousConfigHash?: string
 
   protected _clipboard?: LovelaceCardConfig
 
   setConfig (config: LovelaceCardConfig & BolderContainerCardConfig): void {
+    // Create a simple hash to detect when we're editing a different card instance
+    // Use card count + first few card types + mode as identifier
+    const cardTypes = config.cards?.slice(0, 3).map(c => c.type).join(',') ?? ''
+    const configHash = `${config.cards?.length ?? 0}-${cardTypes}-${config.mode ?? 'vertical'}`
+    const isDifferentCard = this._previousConfigHash !== undefined && this._previousConfigHash !== configHash
+    
     this.config = config
     if (this.config.header && config.header) {
       this.config.header.styles = config.header.styles
     }
+    
+    // Reset state when switching to a different card instance
+    if (isDifferentCard) {
+      this._selectedCard = 0
+      this._keys.clear()
+      this._GUImode = true
+      this._guiModeAvailable = true
+    } else {
+      // Even for the same card, ensure selected card is valid
+      const cardCount = config.cards?.length ?? 0
+      if (this._selectedCard >= cardCount || this._selectedCard < 0) {
+        this._selectedCard = 0
+        this._keys.clear()
+      }
+    }
+    
+    this._previousConfigHash = configHash
   }
 
   protected formData (): object {
@@ -120,10 +144,15 @@ export class BolderContainerCardEditor extends LitElement implements LovelaceCar
       ></ha-form>
       <div class="card-config">
         <div class="toolbar">
-          <sl-tab-group @sl-tab-show=${(ev) => { this._handleSelectedCard(ev) }}>
+          <sl-tab-group>
             ${this.config.cards?.map(
               (_card, i) =>
-                html`<sl-tab slot="nav" .panel=${i.toString()} .active=${i === selected}>
+                html`<sl-tab 
+                  slot="nav" 
+                  .panel=${i.toString()} 
+                  .active=${i === selected}
+                  @click=${(ev: Event) => { this._handleTabClick(i, ev) }}
+                >
                   ${i + 1}
                 </sl-tab>`
             )}
@@ -229,11 +258,30 @@ export class BolderContainerCardEditor extends LitElement implements LovelaceCar
     return localize('editor.' + name, locale)
   }
 
-  protected _handleSelectedCard (ev): void {
+  protected _handleTabClick (index: number, ev?: Event): void {
+    if (ev) {
+      ev.stopPropagation()
+    }
+    // Prevent unnecessary updates if the selected card hasn't changed
+    if (this._selectedCard === index) {
+      return
+    }
     this._setMode(true)
     this._guiModeAvailable = true
+    this._selectedCard = index
+  }
+
+  protected _handleSelectedCard (ev): void {
+    ev.stopPropagation()
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this._selectedCard = parseInt(ev.detail.name, 10)
+    const newSelected = parseInt(ev.detail.name ?? ev.detail.panel ?? ev.detail, 10)
+    // Prevent unnecessary updates if the selected card hasn't changed
+    if (this._selectedCard === newSelected || isNaN(newSelected)) {
+      return
+    }
+    this._setMode(true)
+    this._guiModeAvailable = true
+    this._selectedCard = newSelected
   }
 
   protected _setMode (value: boolean): void {
@@ -300,7 +348,9 @@ export class BolderContainerCardEditor extends LitElement implements LovelaceCar
   }
 
   private _getKey (cards: LovelaceCardConfig[], index: number): string {
-    const key = `${cards[index].type}${index}${cards.length}`
+    // Include config hash to ensure unique keys for different card instances
+    const configHash = this._previousConfigHash ?? 'initial'
+    const key = `${configHash}-${cards[index].type}-${index}-${cards.length}`
     if (!this._keys.has(key)) {
       this._keys.set(key, Math.random().toString())
     }
