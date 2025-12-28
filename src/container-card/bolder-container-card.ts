@@ -340,16 +340,31 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
   private _cardPromise: Promise<LovelaceCard> | undefined
   private _resizeObserver?: ResizeObserver
   private _mutationObserver?: MutationObserver
+  private _intersectionObserver?: IntersectionObserver
 
   // eslint-disable-next-line accessor-pairs
   set hass (hass: HomeAssistant) {
     BolderContainerCard._hass = hass
+    // Always set hass on child card, even if it's being created asynchronously
     if (this._card) {
       this._card.hass = hass
+    } else if (this._cardPromise) {
+      // If card is still being created, set hass when it's ready
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      this._cardPromise.then((card) => {
+        if (card) {
+          card.hass = hass
+          // Trigger update to ensure card renders with hass
+          this.requestUpdate()
+        }
+      })
     }
     if (this._header) {
       this._header.hass = hass
     }
+    // Request update when hass is set to ensure card renders
+    // This is critical on slower devices where hass might be set after initial render
+    this.requestUpdate()
   }
 
   protected static getLocale (): string {
@@ -429,6 +444,10 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
       this._mutationObserver.disconnect()
       this._mutationObserver = undefined
     }
+    if (this._intersectionObserver) {
+      this._intersectionObserver.disconnect()
+      this._intersectionObserver = undefined
+    }
   }
 
   private _setupObservers (): void {
@@ -458,15 +477,46 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
       const wrapper = this.shadowRoot.querySelector('.card-wrapper')
       if (wrapper) {
         this._mutationObserver = new MutationObserver(() => {
-          // When children are added, ensure we recalculate size
+          // When children are added, ensure we recalculate size and propagate hass
+          if (BolderContainerCard._hass && this._card && !this._card.hass) {
+            this._card.hass = BolderContainerCard._hass
+          }
           window.setTimeout(() => {
             window.dispatchEvent(new Event('resize'))
+            this.requestUpdate()
           }, 50)
         })
         this._mutationObserver.observe(wrapper, {
           childList: true,
           subtree: true
         })
+      }
+    }
+
+    // Set up IntersectionObserver to detect when card becomes visible
+    // This helps on slower devices where the card might not be visible initially
+    if (!this._intersectionObserver && 'IntersectionObserver' in window) {
+      const haCard = this.shadowRoot.querySelector('ha-card')
+      if (haCard) {
+        this._intersectionObserver = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            // When card becomes visible, ensure it's properly initialized
+            if (entry.isIntersecting && entry.intersectionRatio > 0) {
+              // Ensure hass is set on child card
+              if (BolderContainerCard._hass && this._card && !this._card.hass) {
+                this._card.hass = BolderContainerCard._hass
+                this.requestUpdate()
+              }
+              // Trigger resize to ensure proper sizing
+              window.setTimeout(() => {
+                window.dispatchEvent(new Event('resize'))
+              }, 10)
+            }
+          }
+        }, {
+          threshold: [0, 0.1, 0.5, 1.0] // Multiple thresholds to catch visibility changes
+        })
+        this._intersectionObserver.observe(haCard)
       }
     }
   }
@@ -477,11 +527,21 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
     // Set up observers if not already set up
     this._setupObservers()
 
+    // Ensure hass is always propagated to child card when component updates
+    // This handles cases where hass is set after the card is created
+    if (BolderContainerCard._hass && this._card && !this._card.hass) {
+      this._card.hass = BolderContainerCard._hass
+    }
+
     if (!this._card) {
       // If card was just created, ensure we trigger a resize after it's rendered
       if (this._cardPromise) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         this._cardPromise.then(() => {
+          // Ensure hass is set when card becomes available
+          if (BolderContainerCard._hass && this._card && !this._card.hass) {
+            this._card.hass = BolderContainerCard._hass
+          }
           window.setTimeout(() => {
             this.requestUpdate()
             window.dispatchEvent(new Event('resize'))
@@ -516,6 +576,12 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
 
     this._card = await this._cardPromise
     
+    // Ensure hass is set on the card even if it wasn't available during creation
+    // This is critical for slower devices where hass might be set after card creation
+    if (BolderContainerCard._hass && this._card) {
+      this._card.hass = BolderContainerCard._hass
+    }
+    
     // Request update to ensure the card is rendered after async creation
     // This is critical for Android devices where timing can cause the card to disappear
     this.requestUpdate()
@@ -525,6 +591,12 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
     
     if (this._card && (this._card as unknown as LitElement).updateComplete) {
       await ((this._card as unknown as LitElement).updateComplete as Promise<boolean>)
+    }
+    
+    // Ensure hass is still set after updates (in case it was set during update)
+    if (BolderContainerCard._hass && this._card && !this._card.hass) {
+      this._card.hass = BolderContainerCard._hass
+      this.requestUpdate()
     }
     
     // Trigger multiple resize events at different intervals to ensure Home Assistant picks it up
@@ -550,16 +622,20 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
   }
 
   protected render (): TemplateResult {
-    if (!BolderContainerCard._hass || !this._config) {
-      return html``
+    // Don't return empty string - always render the structure even if hass/config isn't ready yet
+    // This prevents the card from disappearing on slower devices where timing is off
+    if (!this._config) {
+      return html`<ha-card><div class="card-wrapper"></div></ha-card>`
     }
 
+    // Render the card structure even if hass isn't set yet
+    // The hass setter will trigger an update when it becomes available
     return html`
       <ha-card class="
       ${this._config.is_inner_container ? 'inner-container ' : ''}
       ${this._config.keep_outer_padding ? 'outer-padding ' : ''}
       ">
-      ${this._config.header ? html`${this._header}` : html``}
+      ${this._config.header && this._header ? html`${this._header}` : html``}
         <div class="card-wrapper">${this._card || html``}</div>
         <style>${this._config.styles ? css`${this.getStyleOverrideFromConfig(this._config.styles)}` : css``}</style>
       </ha-card>
@@ -646,9 +722,19 @@ class BolderContainerCard extends LitElement implements LovelaceCard {
     } else {
       element = createThing(config)
     }
+    
+    // Always set hass if available, and ensure it's set even if hass becomes available later
     if (BolderContainerCard._hass) {
       element.hass = BolderContainerCard._hass
+    } else {
+      // If hass isn't available yet, wait a bit and try again
+      // This handles the case where card is created before hass is set (common on slower devices)
+      await new Promise(resolve => window.setTimeout(resolve, 10))
+      if (BolderContainerCard._hass) {
+        element.hass = BolderContainerCard._hass
+      }
     }
+    
     if (element) {
       element.addEventListener(
         'll-rebuild',
