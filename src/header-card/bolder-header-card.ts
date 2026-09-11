@@ -60,6 +60,7 @@ export class BolderHeaderCard extends LitElement implements LovelaceCard {
       title: config.title ?? '',
       subtitle: config.subtitle ?? undefined,
       icon: config.icon ?? undefined,
+      icon_color: config.icon_color ?? undefined,
       styles: config.styles ?? []
     }
   }
@@ -70,8 +71,24 @@ export class BolderHeaderCard extends LitElement implements LovelaceCard {
       title: config.title ?? this._config?.title ?? '',
       subtitle: config.subtitle ?? this._config?.subtitle,
       icon: config.icon ?? this._config?.icon,
+      icon_color: config.icon_color ?? this._config?.icon_color,
       styles: config.styles ?? this._config?.styles
     }
+  }
+
+  /**
+   * Resolve icon_color to a CSS value.
+   *
+   * A bare word is treated as a Home Assistant theme colour and resolved via its
+   * CSS custom property, falling back to the literal word so 'red' still works
+   * on a theme that does not define --red-color. Anything that looks like a CSS
+   * colour already - #hex, rgb(), hsl(), var() - is passed straight through.
+   */
+  private _resolveIconColor (value?: string): string | undefined {
+    if (!value) return undefined
+    const v = value.trim()
+    if (v.startsWith('#') || v.includes('(')) return v
+    return `var(--${v}-color, ${v})`
   }
 
   protected updated (changedProperties: PropertyValues): void {
@@ -86,7 +103,14 @@ export class BolderHeaderCard extends LitElement implements LovelaceCard {
     return html`
       <ha-card>
         <div class="header-icon-container">
-          ${this._config.icon ? html`<ha-icon icon="${this._config.icon}"></ha-icon>` : html``}
+          ${this._config.icon
+            ? html`<ha-icon
+                icon="${this._config.icon}"
+                style="${this._config.icon_color
+                  ? `color: ${this._resolveIconColor(this._config.icon_color)}`
+                  : ''}"
+              ></ha-icon>`
+            : html``}
           <div class="header-container">
             ${this._renderTitle()}
             ${this._renderSubtitle()}

@@ -3,6 +3,7 @@
     "title": "Title",
     "subtitle": "Sub-Title",
     "icon": "Icon",
+    "icon_color": "Icon Color",
     "header": "Header Settings",
     "mode": "Mode",
     "cards": "Cards",

@@ -27,7 +27,8 @@ export class BolderHeaderCardEditor extends LitElement implements LovelaceCardEd
       [
         { name: 'title', locale: thisLocale, selector: { text: {} } },
         { name: 'subtitle', locale: thisLocale, selector: { text: {} } },
-        { name: 'icon', locale: thisLocale, selector: { icon: {} } }
+        { name: 'icon', locale: thisLocale, selector: { icon: {} } },
+        { name: 'icon_color', locale: thisLocale, selector: { ui_color: {} } }
       ] as const
   )
 
@@ -86,6 +87,7 @@ export class BolderHeaderCardEditor extends LitElement implements LovelaceCardEd
     configToFill.title = configFromEvent.title
     configToFill.subtitle = configFromEvent.subtitle
     configToFill.icon = configFromEvent.icon
+    configToFill.icon_color = configFromEvent.icon_color
     configToFill.styles = configFromEvent.styles
   }
 

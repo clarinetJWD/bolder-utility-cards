@@ -239,6 +239,7 @@ mode: vertical
 title: My Card Title
 subtitle: My Card Subtitle
 icon: mdi:home
+icon_color: amber
 styles:
   - variable: title-color
     value: red
@@ -259,6 +260,7 @@ styles:
 | title     | string       | **Optional** | Main title of the card.                                                              | `''`                         |
 | subtitle  | string       | **Optional** | Subtitle, smaller below the main text.                                               | `''`                         |
 | icon      | string       | **Optional** | Sets the icon to the left of the title text.                                         | `''`                         |
+| icon_color | string      | **Optional** | Colors the icon. Accepts a Home Assistant theme color name (`red`, `amber`, `primary`...), or any CSS color value such as `#ff0000` or `rgb(255,0,0)`. A theme name resolves through its CSS variable and falls back to the literal name, so `red` still works on a theme that doesn't define `--red-color`. Overrides the `bolder-header-card-icon-color` theme variable. | `''`                         |
 | styles    | StyleItem[]  | **Optional** | Allows setting theme style variables on a per-card basis without editing the theme.  | `[]`                         |
 
 #### Theme Variables (Header Card)
