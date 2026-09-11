@@ -11,6 +11,15 @@ export function GetCss (myVar: boolean): string {
       --bolder-container-card-padding_internal: var(--bolder-container-card-padding, var(--ha-card-padding, 10px));
       --bolder-container-card-backdrop-filter_internal: var(--bolder-container-card-backdrop-filter, var(--ha-card-backdrop-filter, none));
 
+      /*** Text Color
+       * Captured from the outer context FIRST, so the override applied on
+       * ha-card below cannot feed back into its own default and create a
+       * custom-property cycle. */
+      --bolder-container-card-inherited-text-color: var(--primary-text-color);
+      --bolder-container-card-inherited-secondary-text-color: var(--secondary-text-color);
+      --bolder-container-card-text-color_internal: var(--bolder-container-card-text-color, var(--bolder-container-card-inherited-text-color));
+      --bolder-container-card-secondary-text-color_internal: var(--bolder-container-card-secondary-text-color, var(--bolder-container-card-text-color, var(--bolder-container-card-inherited-secondary-text-color)));
+
       /*** Title Text */
       --bolder-header-card-background: var(--bolder-container-card-title-background, var(--bolder-container-card-title-background_internal));
       --bolder-header-card-title-color: var(--bolder-container-card-title-color, var(--bolder-container-card-title-color_internal));
@@ -37,6 +46,14 @@ export function GetCss (myVar: boolean): string {
       border-width: var(--bolder-container-card-border-width_internal);
       padding: 0 0 0 0;
       backdrop-filter: var(--bolder-container-card-backdrop-filter_internal);
+
+      /* Set on ha-card rather than :host so the child cards inside
+       * .card-wrapper inherit it. Useful when the container has a background
+       * the theme's text color was not chosen against - a colored alert card,
+       * for instance - where the child cards would otherwise be unreadable. */
+      color: var(--bolder-container-card-text-color_internal);
+      --primary-text-color: var(--bolder-container-card-text-color_internal);
+      --secondary-text-color: var(--bolder-container-card-secondary-text-color_internal);
     }
   
     ha-card.outer-padding {

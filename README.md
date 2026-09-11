@@ -87,6 +87,7 @@ Check out the other "Bolder" cards:
 * "Inner Container" mode that disables all visual styling and simply acts as a stack.
 * Full UI configuration (aside from styles).
 * Customize appearance using variables in your theme file, or in the card config.
+* Set the text color for the container and the cards inside it, so inner cards stay readable on a custom background.
 
 ### Configuration (Container Card)
 
@@ -195,6 +196,8 @@ The `_internal` flag is used internally only, and should never be specified.
 | bolder-container-card-box-shadow | The drop-shadow of the container. ||| --ha-card-box-shadow |
 | bolder-container-card-padding | The padding between the container's edges and the inner cards ||| 0px |
 | bolder-container-card-backdrop-filter | The filter/blue setting for the container. | --ha-card-backdrop-filter || none |
+| bolder-container-card-text-color | The text color for the container AND the cards inside it. Set this when the container has a background the theme's text color was not chosen against - a colored alert card, for example - where the inner cards would otherwise be unreadable. The header's title picks it up too, unless `title-color` is set. ||| --primary-text-color |
+| bolder-container-card-secondary-text-color | The secondary text color for the cards inside the container. Follows `text-color` when that is set, so it only needs setting to give secondary text a different color from the primary. | --bolder-container-card-text-color || --secondary-text-color |
 ||||||
 | **Title Text** | Variables that affect the container's header. ||||
 ||||||
