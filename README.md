@@ -104,7 +104,11 @@ cards:
 ```yaml
 type: custom:bolder-container-card
 mode: vertical
-title: My Card Title
+header:
+  title: My Card Title
+  subtitle: My Card Subtitle
+  icon: mdi:home
+  icon_color: amber
 keep_background: true
 keep_margin: false
 keep_box_shadow: false
@@ -133,7 +137,7 @@ cards:
 | type                     | string                | **Required** | `custom:bolder-container-card`                                                                                                                                                                                             |             |
 | cards                    | [Card-Configurations] | **Required** | A collection of child card configurations.                                                                                                                                                                                 | [none]      |
 | mode                     | string                | **Optional** | The direction the stack flows, either `vertical` or `horizontal`.                                                                                                                                                          | `vertical`  |
-| title                    | string                | **Optional** | Title of the card, shown as a header.                                                                                                                                                                                      | `''`        |
+| header                   | Header-Configuration  | **Optional** | Renders a [Bolder Header Card](#bolder-header-card) at the top of the container. Takes the same options as that card - `title`, `subtitle`, `icon`, `icon_color` and `styles` - as a nested block. | `undefined` |
 | keep_background          | boolean               | **Optional** | When `true`, the inner cards keep their normal background color. When `false`, inner cards have their background and backdrop-filter set to `none`.                                                                        | `true`      |
 | keep_margin              | boolean               | **Optional** | When `true`, the inner cards keep their normal margin (external space). When `false`, inner cards have a zero margin, plus any theme variable gap.                                                                         | `false`     |
 | keep_box_shadow          | boolean               | **Optional** | When `true`, the inner cards keep their normal shadow. When `false`, inner cards have their shadow removed.                                                                                                                | `false`     |
@@ -234,8 +238,7 @@ title: Hello World
 #### Full configuration (Header Card)
 
 ```yaml
-type: custom:bolder-container-card
-mode: vertical
+type: custom:bolder-header-card
 title: My Card Title
 subtitle: My Card Subtitle
 icon: mdi:home
