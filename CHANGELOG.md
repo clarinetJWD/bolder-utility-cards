@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/clarinetJWD/bolder-utility-cards/compare/v1.5.0...v1.6.0) (2026-09-11)
+
+
+### Features
+
+* Adds a text-color option to Container Card that also applies to the cards inside it ([9bb9f19](https://github.com/clarinetJWD/bolder-utility-cards/commit/9bb9f19948e582a68ec7ff27e5f7ca4f095e380e))
+
 ## [1.5.0](https://github.com/clarinetJWD/bolder-utility-cards/compare/v1.4.2...v1.5.0) (2026-09-11)
 
 
