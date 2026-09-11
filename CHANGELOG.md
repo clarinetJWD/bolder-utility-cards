@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.2](https://github.com/clarinetJWD/bolder-utility-cards/compare/v1.4.1...v1.4.2) (2025-12-28)
+
+
+### Bug Fixes
+
+* Fixes an issue where container cards may disappear on slower devices. ([72cea9c](https://github.com/clarinetJWD/bolder-utility-cards/commit/72cea9c86dd3ec5464bf0c9d8156dcec7d51748c))
+* Fixes an issue with the container card child card tabs not being interactive on newer versions of Home Assistant ([72cea9c](https://github.com/clarinetJWD/bolder-utility-cards/commit/72cea9c86dd3ec5464bf0c9d8156dcec7d51748c))
+
 ## [1.4.1](https://github.com/clarinetJWD/bolder-utility-cards/compare/v1.4.0...v1.4.1) (2025-05-14)
 
 
