@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/clarinetJWD/bolder-utility-cards/compare/v1.4.2...v1.5.0) (2026-09-11)
+
+
+### Features
+
+* Adds an Icon Color option to Header Card, also available in Container Card header settings ([2d5afb0](https://github.com/clarinetJWD/bolder-utility-cards/commit/2d5afb040e743ac51e0f35a4ebb80e006944687e))
+
 ## [1.4.2](https://github.com/clarinetJWD/bolder-utility-cards/compare/v1.4.1...v1.4.2) (2025-12-28)
 
 
